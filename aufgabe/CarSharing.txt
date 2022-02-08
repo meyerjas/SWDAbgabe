@@ -1,0 +1,67 @@
+Mit der Rolle des Kunden, als auch des registrierten Kunden und des Administrators sind sowohl männliche, weibliche als auch diverse Personen gemeint.
+
+Aufgabe CarSharing App:
+
+Für das Buchen und Benutzen von Fahrzeugen in einer Großstadt soll es eine CarSharing App geben.
+
+Innerhalb der App gibt es drei Rollen, den Kunden, der die App benutzt ohne Registrierung, den registrierten Kunden und den Administrator.
+
+Der normale Kunde kann die App wie folgt benutzen:
+
+1. Er kann nach Auto vorhandenen Autos suchen und dabei auch einstellen, welche Antriebsart das Auto hat, elektrisch oder konventionell (Benzin bzw. Diesel)
+  1.1. Er kann das entsprechende Auto anfragen, ob es zu einem Datum, zu einer Uhrzeit und einer bestimmten Dauer verfügbar ist.
+    Beispiel: 
+      Datum: 05.01.2022
+      Uhrzeit: 14:00 Uhr
+      Dauer: 60 Minuten (Die Angabe der Dauer in Minuten vereinfacht, das ganze ;-) )
+  1.2. Sollte ein Fahrzeug um die angegebene Zeit nicht verfügbar sein, so wird das entsprechend ausgegeben.
+    1.2.1. Ebenso sollte ein Fahrzeug nicht verfügbar sein, wenn die Dauer die maximale Nutzungszeit eines Autos überschreitet.
+    1.2.2. Ebenso sollte ein Fahrzeug nicht verfügbar sein, wenn die angefragte Uhrzeit außerhalb der Nutzungszeit eines Autos liegen sollte.
+  1.3.  Sollte ein Fahrzeug verfügbar sein, so wird dem Kunden der entsprechende Preis für die Fahrt angezeigt. 
+        Preis für die Fahrt ergibt sich durch den Pauschalpreis für das Auto plus Preis pro Minute mal Dauer der Fahrt.
+  1.4. Für die Buchung der Fahrt muss der Kunde sich erst registieren bzw. Anmelden.
+2. Er kann sich alle vorhandenen Autos in einer Liste anzeigen lassen, diese sollte anfangs eingeschränkt dargestellt werden, bspw. maximal 10 Autos.
+  2.1. Aus der Liste kann der Kunde dann ein Auto auswählen, danach geht es mit Punkt 1.1. weiter.
+3. Er kann nach verfügbaren Autos für eine Fahrzeit mit Angabe von Datum, Uhrzeit und Dauer, filtern.
+  2.1. Aus der Liste kann der Kunde dann ein Auto auswählen, danach geht es mit Punkt 1.3. weiter.
+4. Der Kunde kann sich registieren mit Benutzername und Passwort.
+5. Der Kunde kann sich anmelden mit Benutzername und Passwort.
+
+Hinweis:  Elektrische Autos sollten mit einem Zusatz beim Namen des Autos in der Übersicht versehen werden, bspw. (E)
+
+Der registrierte Kunde kann die App wie folgt benutzen:
+Erst einmal die gleichen Funktionalitäten wie der normale Kunde außer Registrieren und Anmelden.
+
+Zudem kann dieser Fahrten buchen, eine gebuchte Fahrt besteht aus Datum, Uhrzeit, Dauer, der Verbindung zum Kunden, der Verbindung zum Auto und des entsprechenden Preises für die Fahrt.
+
+Ebenso kann der registrierte Kunde seine vergangenen Fahrten und seine kommenden gebuchten Fahrten anzeigen lassen.
+Ebenso hat er die Möglichkeit den kumulierten Betrag aller Fahrten und die Durchschnittskosten pro Fahrt anzeigen zu lassen.
+
+Kundenregistrierung:
+Bei der Registrierung ist es erforderlich einen Benutzernamen (alphanumerisch, keine Sonderzeichen) und ein Passwort anzugeben.
+Registrierte Kunden werden dann gespeichert.
+Ein bereits registrtierter Benutzername kann sich nicht nochmals Registrieren.
+
+Anmeldung:
+Mit dem Benutzernamen und Passwort kann sich ein registrierter Kunde anmelden.
+Entsprechende Sicherheitsvorkehrungen, dass das Passwort nicht sichtbar ist, usw... sind erwünscht, bspw. durch Hashes oder Sternchen ****, aber nicht erforderlich.
+
+Der Administrator kann die App wie folgt benutzen:
+Der Administrator soll sich per Benutzername und Passwort einloggen können. (Benutzername und Passwort können der Einfachheit halber hardcoded im Programmcode hinterlegt sein)
+
+Hierbei besitzt der Administrator die gleichen Funktionen wie ein registrierter Kunde.
+Er kann also Fahrten buchen, nach Autos suchen und so weiter.
+
+Zudem ist es dem Administrator vorbehalten neue Autos in der CarSharing Plattform hinzuzufügen.
+Ein Auto besteht aus folgenden Felder, einer eindeutigen ID, einer Bezeichnung, der Antriebsart (elektrisch oder konventionell), einer frühesten Nutzungsuhrzeit, einer spätesten Nutzungsuhrzeit, einer maximalen Nutzungsdauer, 
+einem pauschalen Nutzungspreis in EUR und einem Preis pro Minute in EUR.
+Beispiel:
+  ID: TELMOD3-1
+  Bezeichnung: Tesla Model 3 - weiß
+  Antriebsart: elektrisch oder auch möglich Elektrisch: (Ja/Nein)
+
+  f. NUZ: 06:00
+  s. NUZ: 22:00
+  m. ND:  180 min.
+  p. NP:  20 €
+  Ppmin:  0,50 €
