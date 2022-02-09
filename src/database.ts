@@ -139,6 +139,15 @@ export class Database {
             return null;
     }
 
+    public async getAllAvailableCars(rides: Ride[]): Promise<Car[] | null> {
+        let avaRides = rides;
+        let allAvailableCars: Car[] = <Car[]><unknown[]>await this.dbCars.find(avaRides).toArray();
+        if (allAvailableCars)
+            return allAvailableCars;
+        else
+            return null;
+    }
+
     public async getRides(carId: Mongo.ObjectId): Promise<Ride[] | null> {
         let rides: Ride[] = <Ride[]><unknown>await this.dbRides.find({ carID: carId}).toArray();
         if (rides.length > 0) {
@@ -155,6 +164,15 @@ export class Database {
             return rides;
         } else {
             console.log("Cant find any rides.");
+            return null;
+        }
+    }
+
+    public async getAllRides(): Promise<Ride[]>{
+        let allRides: Ride[] = <Ride[]><unknown[]>await this.dbRides.find().toArray();
+        if (allRides) {
+            return allRides;
+        } else {
             return null;
         }
     }
