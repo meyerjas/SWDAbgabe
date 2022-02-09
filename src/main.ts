@@ -4,24 +4,28 @@ import prompts from "prompts";
 import { Ride } from "./ride";
 import { Customer } from "./customer";
 import { LogInManager } from "./logInManager";
+import { ObjectId } from "mongodb";
 
 export let database: Database = new Database();
-
+export let logman: LogInManager = new LogInManager();
+let user: Customer;
 
 export class Main {
 
     public chosenValue: { answer: number };
-
+    
     public async main(): Promise<void> {
 
         console.log("Willkommen bei der Car Sharing App!");
+
         await database.connect();
+
         let all: Car[] = await database.getAllCars();
         let life: boolean = true;
-        const prompts = require(`prompts`);
+        let prompts = require("prompts");
 
         while (life) {
-            //choose whether you want to look though all cars (first 10) or use a filter (fuel type)
+            
             let response: prompts.Answers<string> = await prompts({
                 type: "select",
                 name: "answer",
@@ -30,14 +34,11 @@ export class Main {
                     { title: "Zeig mir eine Auswahl von Autos, aus denen ich wählen kann.", value: 0 },
                     { title: "Ich will Autos mit einer bestimmten Antriebsart sehen.", value: 1 },
                     { title: "Ich will nach Verfügbarkeit filtern.", value: 2 },
-                    { title: "Ich will mich anmelden, um meine Historie oder bevorstehende Fahrten einzusehen.", value: 3 },
+                    { title: "Ich will mich anmelden, um meine Fahrten einzusehen.", value: 3 },
                     { title: "Ich bin ein Admin und möchte ein neues Auto hinzufügen.", value: 4 },
                     { title: "App beenden", value: 5 }
                 ]
             });
-
-
-
 
             //show selection of cars
             if (response.answer == 0) {
@@ -66,7 +67,6 @@ export class Main {
 
                 let chosenDate: Date = response.value;
                 chosenDate.setMinutes(chosenDate.getMinutes() + 60);
-                console.log(chosenDate);
 
                 //what duration do you need it for?
                 response = await prompts({
@@ -139,25 +139,33 @@ export class Main {
                             //LogIn
                             if (prompt.answer == 0) {
 
-                                response = await prompts({
-                                    type: "text",
-                                    name: "value",
-                                    message: "Nutzername:",
-                                });
-                                let userName: string = response.value;
+                                let proceed: boolean = false;
 
-                                response = await prompts({
-                                    type: "text",
-                                    name: "value",
-                                    message: "Kennwort: ",
-                                });
-                                let password: string = response.value;
-
-                                await database.login(userName, password);
-
-                                console.log("Login erfolgreich, die Buchung erfolgt nun.");
-
-                                let user: Customer = await database.findUserByUsername(userName);
+                                let userName: string;
+                                while (!proceed) {
+                
+                                    response = await prompts({
+                                        type: "text",
+                                        name: "value",
+                                        message: "Nutzername:",
+                                    });
+                                    userName = response.value;
+                
+                                    response = await prompts({
+                                        type: "text",
+                                        name: "value",
+                                        message: "Kennwort: ",
+                                    });
+                                    let password: string = response.value;
+                
+                                    let customer: Customer = await database.login(userName, password);
+                                    if (customer != null) {
+                                        console.log("LogIn erfolgreich.");
+                                        proceed = true;
+                                    } else {
+                                        console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                                    }
+                                }
 
                                 let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
                                 await database.addRideToDB(bookRide);
@@ -216,20 +224,21 @@ export class Main {
                     let lateUT: number[] = car.latestUseTime;
                     let desiredUT: Date = chosenDate;
 
+
                     //Hour too early to use car
-                    if (earlyUT[0] > desiredUT.getHours()) {
+                    if (earlyUT[0] > desiredUT.getHours()-1) {
                         console.log("Du kannst dieses Auto leider nicht zu solch früher Stunde nutzen.");
                         life = false;
                         //Hour okay, but Minute too early
-                    } else if (earlyUT[0] == desiredUT.getHours() && earlyUT[1] > desiredUT.getMinutes()) {
+                    } else if (earlyUT[0] == desiredUT.getHours()-1 && earlyUT[1] > desiredUT.getMinutes()) {
                         console.log("Du kannst dieses Auto leider nicht so früh nutzen.");
                         life = false;
                         //Hour too late to use car
-                    } else if (lateUT[0] < desiredUT.getHours()) {
+                    } else if (lateUT[0] < desiredUT.getHours()-1) {
                         console.log("Du kannst dieses Auto leider nicht solch später Stunde nutzen.");
                         life = false;
                         //Hour okay, but Minute too late
-                    } else if (lateUT[0] == desiredUT.getHours() && lateUT[1] < desiredUT.getMinutes()) {
+                    } else if (lateUT[0] == desiredUT.getHours()-1 && lateUT[1] < desiredUT.getMinutes()) {
                         console.log("Du kannst dieses Auto leider nicht so spät nutzen!");
                         life = false;
 
@@ -254,29 +263,36 @@ export class Main {
                     //login
                     if (prompt.answer == 0) {
                         
-                        response = await prompts({
-                            type: "text",
-                            name: "value",
-                            message: "Nutzername:",
-                        });
-                        let userName: string = response.value;
+                        let proceed: boolean = false;
 
-                        response = await prompts({
-                            type: "text",
-                            name: "value",
-                            message: "Kennwort: ",
-                        });
-                        let password: string = response.value;
-
-                        if (await database.login(userName, password) == null) {
-                            console.log("Es gibt keinen Nutzer mit diesem Username. ");
-                        } else {
-                            console.log("Login erfolgreich, die Fahrt wird jetzt gebucht!.");
-
-                            let user: Customer = await database.findUserByUsername(userName);
+                        let userName: string;
+                        while (!proceed) {
+        
+                            response = await prompts({
+                                type: "text",
+                                name: "value",
+                                message: "Nutzername:",
+                            });
+                            userName = response.value;
+        
+                            response = await prompts({
+                                type: "text",
+                                name: "value",
+                                message: "Kennwort: ",
+                            });
+                            let password: string = response.value;
+        
+                            let customer: Customer = await database.login(userName, password);
+                            if (customer != null) {
+                                console.log("LogIn erfolgreich.");
+                                proceed = true;
+                            } else {
+                                console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                            }
+                        }
                             let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
                             await database.addRideToDB(bookRide);
-                        }
+                        
 
 
 
@@ -323,14 +339,14 @@ export class Main {
 
 
 
-
+            //choose fuelType
             } else if (response.answer == 1) {
                 let prompt: prompts.Answers<string> = await prompts.prompt({
                     type: "select",
                     name: "answer",
                     message: "Wähle eine Antriebsart aus.",
                     choices: [
-                        { title: "Zeig mir elektrische Autos.", value: 0 },
+                        { title: "Zeig mir elektronische Autos.", value: 0 },
                         { title: "Zeig mir Autos mit konventionellem Antrieb.", value: 1 },
                     ]
                 });
@@ -367,12 +383,14 @@ export class Main {
 
 
                     let availability: Ride[] | null = await database.getRides(all[this.chosenValue.answer]._id);
+                    console.log(availability)
                     if (availability != null) { 
                         for (let i: number = 0; i < availability.length; i++) {
                             let ride: Ride = availability[i];
                             //compare wanted date & time with already booked rides for the chosen car
                             if (ride.date > chosenDate && ride.date < new Date(chosenDate.getTime() + duration * 60000)) {//in ms, thats why *60000
                                 console.log("Oh nein, leider ist das Auto da nicht verfügbar.");
+                                life = false;
                             } else {
                                 //compare if wanted duration is too long (exceeds cars max duration)
                                 let car: Car = await database.getCar(all[this.chosenValue.answer]._id);
@@ -388,19 +406,19 @@ export class Main {
                                 let desiredUT: Date = chosenDate;
 
                                 //Hour too early to use car
-                                if (earlyUT[0] > desiredUT.getHours()) {
+                                if (earlyUT[0] > desiredUT.getHours()-1) {
                                     console.log("Du kannst dieses Auto leider nicht zu solch früher Stunde nutzen.")
                                     life = false;
                                 //Hour okay, but Minute too early
-                                } else if (earlyUT[0] == desiredUT.getHours() && earlyUT[1] > desiredUT.getMinutes()) {
+                                } else if (earlyUT[0] == desiredUT.getHours()-1 && earlyUT[1] > desiredUT.getMinutes()) {
                                     console.log("Du kannst dieses Auto leider nicht so früh nutzen.")
                                     life = false; 
                                 //Hour too late to use car
-                                } else if (lateUT[0] < desiredUT.getHours()) {
+                                } else if (lateUT[0] < desiredUT.getHours()-1) {
                                     console.log("Du kannst dieses Auto leider nicht zu solch später Stunde nutzen.")
                                     life = false;
                                 //Hour okay, but Minute too late
-                                } else if (lateUT[0] == desiredUT.getHours() && lateUT[1] < desiredUT.getMinutes()) {
+                                } else if (lateUT[0] == desiredUT.getHours()-1 && lateUT[1] < desiredUT.getMinutes()) {
                                     console.log("Du kannst dieses Auto leider nicht so spät nutzen.")
                                     life = false;
                                 } else
@@ -426,26 +444,34 @@ export class Main {
                                 })
                                 //LogIn
                                 if (prompt.answer == 0) {
+                                    
+                                    let proceed: boolean = false;
 
-                                    response = await prompts({
-                                        type: "text",
-                                        name: "value",
-                                        message: "Nutzername:",
-                                    });
-                                    let userName: string = response.value;
-
-                                    response = await prompts({
-                                        type: "text",
-                                        name: "value",
-                                        message: "Kennwort: ",
-                                    });
-                                    let password: string = response.value;
-
-                                    await database.login(userName, password);
-
-                                    console.log("Login erfolgreich, die Buchung erfolgt nun.");
-
-                                    let user: Customer = await database.findUserByUsername(userName);
+                                    let userName: string;
+                                    while (!proceed) {
+                    
+                                        let response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Nutzername:",
+                                        });
+                                        userName = response.value;
+                    
+                                        response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Kennwort: ",
+                                        });
+                                        let password: string = response.value;
+                    
+                                        let customer: Customer = await database.login(userName, password);
+                                        if (customer != null) {
+                                            console.log("LogIn erfolgreich.");
+                                            proceed = true;
+                                        } else {
+                                            console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                                        }
+                                    }
 
                                     let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
                                     await database.addRideToDB(bookRide);
@@ -495,6 +521,9 @@ export class Main {
                         let car: Car = await database.getCar(all[this.chosenValue.answer]._id);
                         let maxUseDur: number = car.maxUseDuration;
 
+                        console.log(car);
+
+
                         if (duration > maxUseDur) {
                             console.log("Du kannst dieses Auto nicht so lange ausleihen!");
                             life = false;
@@ -542,29 +571,36 @@ export class Main {
                         //login
                         if (prompt.answer == 0) {
                             
-                            response = await prompts({
-                                type: "text",
-                                name: "value",
-                                message: "Nutzername:",
-                            });
-                            let userName: string = response.value;
+                            let proceed: boolean = false;
 
-                            response = await prompts({
-                                type: "text",
-                                name: "value",
-                                message: "Kennwort: ",
-                            });
-                            let password: string = response.value;
-
-                            if (await database.login(userName, password) == null) {
-                                console.log("Es gibt keinen Nutzer mit diesem Username. ");
-                            } else {
-                                console.log("Login erfolgreich, die Fahrt wird jetzt gebucht!.");
-
-                                let user: Customer = await database.findUserByUsername(userName);
+                            let userName: string;
+                            while (!proceed) {
+            
+                                let response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Nutzername:",
+                                });
+                                userName = response.value;
+            
+                                response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Kennwort: ",
+                                });
+                                let password: string = response.value;
+            
+                                let customer: Customer = await database.login(userName, password);
+                                if (customer != null) {
+                                    console.log("LogIn erfolgreich.");
+                                    proceed = true;
+                                } else {
+                                    console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                                }
+                            }
                                 let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
                                 await database.addRideToDB(bookRide);
-                            }
+                            
 
 
 
@@ -608,23 +644,8 @@ export class Main {
                     }
 
                 }
-                //     let availability: Ride[] | null = await database.getRides(all[this.chosenValue.answer]._id);
-                //     if (availability != null) {
-                //         for (let i: number = 0; i < availability.length; i++) {
-                //             let ride: Ride = availability[i];
 
-                //             if (ride.date > chosenDate && ride.date < new Date(chosenDate.getTime() + duration * 60000)) {
-                //                 console.log("Oh nein, leider ist das Auto da nicht verfügbar.");
-                //             } else {
-                //                 console.log("Super, sieht so aus als wäre das Auto frei!");
-                //             }
-                //         }
-                //         console.log(availability);
-                //     } else {
-                //         console.log("Super, sieht so aus als wäre das Auto frei!");
-                //     }
-
-                // }
+                //fuelType: conventional
                 if (prompt.answer == 1) {
                     let conventional: Car[] = await database.getAllConventionalCars();
                     if (conventional) {
@@ -653,20 +674,263 @@ export class Main {
                     });
                     let duration: number = response.value; // in Minuten
 
+                    let _id: ObjectId = all[this.chosenValue.answer]._id;
+
                     let availability: Ride[] | null = await database.getRides(all[this.chosenValue.answer]._id);
-                    if (availability != null) {
+                    console.log(availability);
+                    if (availability != null) { 
                         for (let i: number = 0; i < availability.length; i++) {
                             let ride: Ride = availability[i];
-
-                            if (ride.date > chosenDate && ride.date < new Date(chosenDate.getTime() + duration * 60000)) {
+                            //compare wanted date & time with already booked rides for the chosen car
+                            if (ride.date > chosenDate && ride.date < new Date(chosenDate.getTime() + duration * 60000)) {//in ms, thats why *60000
                                 console.log("Oh nein, leider ist das Auto da nicht verfügbar.");
+                                life = false;
                             } else {
-                                console.log("Super, sieht so aus als wäre das Auto frei!");
+                                //compare if wanted duration is too long (exceeds cars max duration)
+                                let car: Car = await database.getCar(all[this.chosenValue.answer]._id);
+                                let maxUseDur: number = car.maxUseDuration;
+
+                                if (duration > maxUseDur) {
+                                    console.log("Du kannst dieses Auto nicht so lange ausleihen!")
+                                    life = false;
+                                }
+
+                                let earlyUT: number[] = car.earliestUseTime;
+                                let lateUT: number[] = car.latestUseTime;
+                                let desiredUT: Date = chosenDate;
+
+                                //Hour too early to use car
+                                if (earlyUT[0] > desiredUT.getHours()-1) {
+                                    console.log("Du kannst dieses Auto leider nicht zu solch früher Stunde nutzen.")
+                                    life = false;
+                                //Hour okay, but Minute too early
+                                } else if (earlyUT[0] == desiredUT.getHours()-1 && earlyUT[1] > desiredUT.getMinutes()) {
+                                    console.log("Du kannst dieses Auto leider nicht so früh nutzen.")
+                                    life = false; 
+                                //Hour too late to use car
+                                } else if (lateUT[0] < desiredUT.getHours()-1) {
+                                    console.log("Du kannst dieses Auto leider nicht zu solch später Stunde nutzen.")
+                                    life = false;
+                                //Hour okay, but Minute too late
+                                } else if (lateUT[0] == desiredUT.getHours()-1 && lateUT[1] < desiredUT.getMinutes()) {
+                                    console.log("Du kannst dieses Auto leider nicht so spät nutzen.")
+                                    life = false;
+                                } else
+                                    console.log("Super, sieht so aus als wäre das Auto frei!");
+
+
+
+                                //calculate the cost for the ride
+                                let ppMcalc = duration * car.pricePerMinute;
+                                let costRide = ppMcalc + car.flatRatePrice;
+                                console.log("Diese Fahrt würde " + costRide + " Euro kosten.");
+
+                                //ask if customer wants to register or login
+                                let prompt: prompts.Answers<string> = await prompts.prompt({
+                                    type: "select",
+                                    name: "answer",
+                                    message: "Um zu buchen, melde dich bitte an oder erstelle einen neuen Account.",
+                                    choices: [
+                                        { title: "Ich habe bereits einen Account.", value: 0 },
+                                        { title: "Erstelle einen neuen Account.", value: 1 },
+                                        { title: "Ich möchte ein anderes Auto wählen.", value: 2 }
+                                    ]
+                                })
+                                //LogIn
+                                if (prompt.answer == 0) {
+                                    
+                                    let proceed: boolean = false;
+
+                                    let userName: string;
+                                    while (!proceed) {
+                    
+                                        let response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Nutzername:",
+                                        });
+                                        userName = response.value;
+                    
+                                        response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Kennwort: ",
+                                        });
+                                        let password: string = response.value;
+                    
+                                        let customer: Customer = await database.login(userName, password);
+                                        if (customer != null) {
+                                            console.log("LogIn erfolgreich.");
+                                            proceed = true;
+                                        } else {
+                                            console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                                        }
+                                    }
+
+                                    let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
+                                    await database.addRideToDB(bookRide);
+
+
+                            //register
+                                } else if (prompt.answer == 1) {
+
+                                    let proceed: boolean = false;
+
+                                    while (!proceed) {
+                                        response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Neuer Nutzername:",
+                                        });
+                                        let userName: string = response.value;
+
+                                        response = await prompts({
+                                            type: "text",
+                                            name: "value",
+                                            message: "Neues Kennwort: ",
+                                        });
+                                        let password: string = response.value;
+
+                                        let customer: Customer = await database.register(userName, password);
+                                        if (customer != null) {
+                                            console.log("Registrierung erfolgreich! Die Buchung erfolgt jetzt.");
+                                            proceed = true;
+
+                                            let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
+                                            await database.addRideToDB(bookRide);
+
+                                        } else {
+                                            console.log("Dieser Nutzername ist leider schon vergeben. ");
+                                        }
+
+                                    }
+                                    } else if (prompt.answer == 2) {
+                                        life = false;
+                                    }
                             }
                         }
-                        console.log(availability);
                     } else {
-                        console.log("Super, sieht so aus als wäre das Auto frei!");
+                        let car: Car = await database.getCar(all[this.chosenValue.answer]._id);
+                        console.log(car);
+                        let maxUseDur: number = car.maxUseDuration;
+
+                        if (duration > maxUseDur) {
+                            console.log("Du kannst dieses Auto nicht so lange ausleihen!");
+                            life = false;
+                        }
+
+                        let earlyUT: number[] = car.earliestUseTime;
+                        let lateUT: number[] = car.latestUseTime;
+                        let desiredUT: Date = chosenDate;
+
+                        //Hour too early to use car
+                        if (earlyUT[0] > desiredUT.getHours()) {
+                            console.log("Du kannst dieses Auto leider nicht zu solch früher Stunde nutzen.");
+                            life = false;
+                            //Hour okay, but Minute too early
+                        } else if (earlyUT[0] == desiredUT.getHours() && earlyUT[1] > desiredUT.getMinutes()) {
+                            console.log("Du kannst dieses Auto leider nicht so früh nutzen.");
+                            life = false;
+                            //Hour too late to use car
+                        } else if (lateUT[0] < desiredUT.getHours()) {
+                            console.log("Du kannst dieses Auto leider nicht solch später Stunde nutzen.");
+                            life = false;
+                            //Hour okay, but Minute too late
+                        } else if (lateUT[0] == desiredUT.getHours() && lateUT[1] < desiredUT.getMinutes()) {
+                            console.log("Du kannst dieses Auto leider nicht so spät nutzen!");
+                            life = false;
+
+                        } else console.log("Super, das Auto ist verfügbar.");
+
+                        //calculate the cost for the ride
+                        let ppMcalc = duration * car.pricePerMinute;
+                        let costRide = ppMcalc + car.flatRatePrice;
+                        console.log("Diese Fahrt würde " + costRide + " Euro kosten.");
+
+                        //ask if customer wants to register or login
+                        let prompt: prompts.Answers<string> = await prompts.prompt({
+                            type: "select",
+                            name: "answer",
+                            message: "Um zu buchen, melde dich bitte an oder erstelle einen neuen Account.",
+                            choices: [
+                                { title: "Ich habe bereits einen Account.", value: 0 },
+                                { title: "Erstelle einen neuen Account.", value: 1 },
+                            ]
+                        })
+
+                        //login
+                        if (prompt.answer == 0) {
+                            
+                            let proceed: boolean = false;
+
+                            let userName: string;
+                            while (!proceed) {
+            
+                                let response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Nutzername:",
+                                });
+                                userName = response.value;
+            
+                                response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Kennwort: ",
+                                });
+                                let password: string = response.value;
+            
+                                let customer: Customer = await database.login(userName, password);
+                                if (customer != null) {
+                                    console.log("LogIn erfolgreich.");
+                                    proceed = true;
+                                } else {
+                                    console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
+                                }
+                            }
+                                let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
+                                await database.addRideToDB(bookRide);
+                            
+
+
+
+                    //register    
+                        } else if (prompt.answer == 1) {
+
+                            let proceed: boolean = false;
+
+                            while (!proceed) {
+                                response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Neuer Nutzername:",
+                                });
+                                let userName: string = response.value;
+
+                                response = await prompts({
+                                    type: "text",
+                                    name: "value",
+                                    message: "Neues Kennwort: ",
+                                });
+                                let password: string = response.value;
+
+                                let customer: Customer = await database.register(userName, password);
+                                if (customer != null) {
+                                    console.log("Registrierung erfolgreich! Die Buchung erfolgt jetzt.");
+                                    proceed = true;
+
+                                    let user: Customer = await database.findUserByUsername(userName);
+
+                                    let bookRide: Ride = new Ride(chosenDate, duration, userName, all[this.chosenValue.answer]._id, costRide, maxUseDur);
+                                    await database.addRideToDB(bookRide);
+
+
+                                } else {
+                                    console.log("Dieser Nutzername ist leider schon vergeben. ");
+                                }
+                            }
+                        }
+
                     }
 
                 }
@@ -676,10 +940,28 @@ export class Main {
 
 
 
-            } else if (response.answer == 2) {
+            } else if (response.answer == 2) { //Er kann nach verfügbaren Autos für eine Fahrzeit mit Angabe von Datum, Uhrzeit und Dauer, filtern.
 
+                response = await prompts({
+                    type: "date",
+                    name: "value",
+                    message: "Wann brauchst du das Auto?",
+                });
+                let chosenDate: Date = response.value;
+                chosenDate.setMinutes(chosenDate.getMinutes() + 60);
+                console.log(chosenDate);
 
+                response = await prompts({
+                    type: "number",
+                    name: "value",
+                    message: "Wie lange brauchst du das Auto?",
+                });
+                let duration: number = response.value; // in Minuten
 
+                let availability: Ride[] | null = await database.getRides(all[this.chosenValue.answer]._id);
+                let car: Car = await database.getCar(all[this.chosenValue.answer]._id);
+
+                
 
 
 
@@ -825,7 +1107,7 @@ export class Main {
 
                     //electric 
                     else if (prompt. answer == 1) {
-                        fuelType = "electronic"
+                        fuelType = "electric"
                         carName = carName + " (E)"
                     }
                     console.log(carName);
