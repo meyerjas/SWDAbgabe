@@ -87,6 +87,7 @@ export class Methods {
     public async availabilityRide(): Promise<void> {
         let dateTime: Date = await customerMethod.dateTimeNeed();
         let duration: number = await customerMethod.durationNeed();
+        console.log("Diese Autos sind verfügbar:");
         let chosenCar: Car = await customerMethod.chooseAvailableCar(dateTime, duration);
 
         let price: number = await rideMethod.calculateCostForRide(duration, chosenCar);

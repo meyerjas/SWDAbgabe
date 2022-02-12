@@ -244,7 +244,7 @@ export class CustomerMethods {
         //Show all available cars
         let choices = [];
         for (let i: number = 0; i < 10 && i < availableCars.length; i++) {
-            choices[i] = { title: availableCars[i].name, value: availableCars[i]._id };
+            choices[i] = { title: availableCars[i].name, value: i};
         }
         //choose car
         let response = await prompts({
