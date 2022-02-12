@@ -958,7 +958,6 @@ export class Main {
                 let duration: number = response.value; // in Minuten
 
 
-                let rides: Ride[] = await database.getAllRides();
                 let cars: Car[] = await database.getAllCars();
                 let desiredUT: Date = chosenDate;
                 let availableCars: Car[] = [];
@@ -977,7 +976,7 @@ export class Main {
 
                 }
                 
-                //Show all cars
+                //Show all available cars
                 let choices = [];
                 for (let i: number = 0; i < 10 && i < availableCars.length; i++) {
                     choices[i] = { title: availableCars[i].name, value: availableCars[i]._id};
@@ -989,7 +988,7 @@ export class Main {
                     message: "",
                     choices: choices
                 });
-                
+
 
 
 
