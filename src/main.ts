@@ -11,7 +11,7 @@ export class Main {
 
         let keepAlive: boolean = true;
 
-        
+
         console.log("Willkommen bei der Car Sharing App!");
         await database.connect();
 

@@ -27,4 +27,8 @@ export class Car {
         this.flatRatePrice = flatRatePrice;
         this.pricePerMinute = pricePerMinute;
     }
+
+
+    //public async showAllCars(): Promise<number> {
+    //}
 }
