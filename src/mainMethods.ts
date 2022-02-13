@@ -1,4 +1,4 @@
-import prompts from "prompts";
+import promptstypes from "prompts";
 import { Ride } from "./ride";
 import { database } from "./main";
 import { Car } from "./car";
@@ -18,9 +18,9 @@ export let rideMethod: RideMethods = new RideMethods();
 export class Methods {
 
 
-    public async mainMenu(): Promise<number> {
+    public async mainMenu(): Promise<void> {
 
-        let response: prompts.Answers<string> = await prompts({
+        let response: promptstypes.Answers<string> = await prompts({
             type: "select",
             name: "answer",
             message: "Was willst du machen?",
@@ -34,7 +34,33 @@ export class Methods {
             ]
         });
 
-        return response.answer;
+        let answer: number = response.answer;
+
+            //show all(first 10) cars
+            if (answer == 0) {
+                await this.createRide();
+            }
+            //filter by fuelType
+            else if (answer == 1) {
+                await this.fuelTypeRide();
+            }
+            //filter by availability
+            else if (answer == 2) {
+                await this.availabilityRide();
+            }
+            //show rides of the customer, spent money
+            else if (answer == 3) {
+                await this.viewHistoryAndRides();
+            }
+            //admin login too add car
+            else if (answer == 4) {
+                await this.adminLogIn();
+            }
+            else if (answer == 5) {
+                console.log("Bis zum nächsten Mal!");
+                await database.disconnect();
+            }
+        
     }
 
     public async createRide(): Promise<void> {
@@ -45,14 +71,20 @@ export class Methods {
         //prompts to see how long the customer needs the car
         let duration: number = await customerMethod.durationNeed();
 
-        await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+        let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+        if (success == true) {
+            await this.mainMenu();
+        } else {
+            console.log("Bitte wähle ein anderes Auto.");
+            await this.mainMenu();
+        }
     }
 
 
 
     public async fuelTypeRide(): Promise<void> {
 
-        let prompt: prompts.Answers<string> = await prompts.prompt({
+        let prompt: promptstypes.Answers<string> = await prompts.prompt({
             type: "select",
             name: "answer",
             message: "Wähle eine Antriebsart aus.",
@@ -69,7 +101,13 @@ export class Methods {
             //prompts to see how long the customer needs the car
             let duration: number = await customerMethod.durationNeed();
 
-            await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+            let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+            if (success == true) {
+                await this.mainMenu();
+            } else {
+                console.log("Bitte wähle ein anderes Auto.");
+                await this.mainMenu();
+            }
         }
 
         if (prompt.answer == 1) {
@@ -79,7 +117,13 @@ export class Methods {
             //prompts to see how long the customer needs the car
             let duration: number = await customerMethod.durationNeed();
 
-            await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+            let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
+            if (success == true) {
+                await this.mainMenu();
+            } else {
+                console.log("Bitte wähle ein anderes Auto.");
+                await this.mainMenu();
+            }
         }
 
     }
@@ -109,19 +153,21 @@ export class Methods {
         //login
         let username: string = await logman.logIn(false);
 
-        let prompt: prompts.Answers<string> = await prompts.prompt({
+        let prompt: promptstypes.Answers<string> = await prompts.prompt({
             type: "select",
             name: "answer",
             message: "Was möchtest du tun?",
             choices: [
                 { title: "Zeig mir alle meine Fahrten.", value: 0 },
                 { title: "Wie viel Geld habe ich bisher ausgegeben?", value: 1 },
+                { title: "Zurück zum Hauptmenü", value: 2 }
             ]
         })
         //show all rides
         let rides: Ride[] = await database.getCustomerRides(username);
         if (prompt.answer == 0) {
             console.log(rides);
+            await this.viewHistoryAndRides();
         }
         //show money spent (sum and average)
         else if (prompt.answer == 1) {
@@ -134,19 +180,23 @@ export class Methods {
             let average: number = sum / rides.length;
             console.log("Du hast bisher insgesamt " + sum + " Euro ausgegeben.");
             console.log("Durchschnittlich zahlst du pro Fahrt " + average + " Euro");
+
+        } else if (prompt.answer == 2) {
+            console.log("Bis zum nächsten Mal!");
+            await this.mainMenu();
         }
     }
 
     public async adminLogIn(): Promise<void> {
         await logman.logIn(true);
 
-        let prompt: prompts.Answers<string> = await prompts.prompt({
+        let prompt: promptstypes.Answers<string> = await prompts.prompt({
             type: "select",
             name: "answer",
             message: "Was möchtest du tun?",
             choices: [
                 { title: "Ich möchte ein neues Auto hinzufügen.", value: 0 },
-                { title: "App verlassen.", value: 1 },
+                { title: "Zurück zum Hauptmenü", value: 1 },
             ]
         })
         //add car
@@ -154,7 +204,7 @@ export class Methods {
             await admin.addCarInput();
         }
         else if (prompt.answer == 1) {
-            
+            await this.mainMenu();
         }
     }
 }

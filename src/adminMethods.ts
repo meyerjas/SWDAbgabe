@@ -1,5 +1,5 @@
 import { Car } from "./car";
-import prompts from "prompts";
+import promptstypes from "prompts";
 import { database } from "./main";
 
 let prompts = require("prompts");
@@ -18,7 +18,7 @@ export class AdminMethods {
         let carName = response.value;
 
         //multiple choice for fuelType
-        let prompt: prompts.Answers<string> = await prompts.prompt({
+        let prompt: promptstypes.Answers<string> = await prompts.prompt({
             type: "select",
             name: "answer",
             message: "Welche Antriebsart hat das Auto?",

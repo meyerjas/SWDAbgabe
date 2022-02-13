@@ -1,8 +1,7 @@
 import { ObjectId } from "mongodb";
 
-
 export class Customer {
-    public _id?: ObjectId;
+    public _id: ObjectId;
     public username: string;
     public password: string;
     public admin: boolean;

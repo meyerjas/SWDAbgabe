@@ -9,11 +9,11 @@ export class Database {
     //Singleton for global access of Database
     private static instance: Database;
     private constructor() {
-        if (Database.instance)
+        if (Database.instance) {
             throw new Error("Du musst getInstance() nutzen.");
+        }
         Database.instance = this;
     }
-
     public static getInstance(): Database {
         if (!Database.instance) {
             Database.instance = new Database();
@@ -44,12 +44,12 @@ export class Database {
         return this.dbCustomers != undefined;
     }
 
-    // public async disconnect(): Promise<void> {
-    //     if (this.mongoClient) {
-    //         await this.mongoClient.close();
-    //         console.log("DBConnection disconnected successfull");
-    //     }
-    // }
+    public async disconnect(): Promise<void> {
+        if (this.mongoClient) {
+            await this.mongoClient.close();
+            console.log("DBConnection disconnected successfull");
+        }
+    }
 
 
 

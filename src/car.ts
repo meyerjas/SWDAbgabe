@@ -1,8 +1,4 @@
 import { ObjectId } from "mongodb";
-import prompts from "prompts";
-import { database } from "./main";
-
-let prompts = require("prompts");
 
 export class Car {
     public _id?: ObjectId;
@@ -27,8 +23,4 @@ export class Car {
         this.flatRatePrice = flatRatePrice;
         this.pricePerMinute = pricePerMinute;
     }
-
-
-    //public async showAllCars(): Promise<number> {
-    //}
 }

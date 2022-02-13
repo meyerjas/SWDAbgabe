@@ -1,14 +1,17 @@
 import { Customer } from "./customer";
-import prompts from "prompts";
+import promptstypes from "prompts";
 import { database } from "./main";
 
 let prompts = require("prompts");
 
 export class LogInManager {
 
+    //Null Object as placeholder for unregistered User
+    private activeCustomer: Customer = new Customer("Guest", false);
 
-    public customers: string;
 
+
+    //regEx to check Username is okay
     private checkUsername(username: string): boolean {
         //will accept alphanumeric usernames between 5 and 20 characters, no special characters.
         return username.match(/^(?=.{5,20}$)[a-zA-Z0-9._]+(?<![_.])$/) != null;
@@ -37,9 +40,10 @@ export class LogInManager {
             let password: string = response.value;
 
             let customer: Customer = await database.login(userName, password);
+            this.activeCustomer = customer;
 
             if (admin == false) {
-                if (customer != null) {
+                if (customer) {
                     console.log("LogIn erfolgreich.");
 
                     proceed = true;
@@ -48,7 +52,7 @@ export class LogInManager {
                     console.log("Login fehlgeschlagen, überprüfe Schreibweise.")
                 }
             } else {
-                if (customer != null) {
+                if (customer) {
                     console.log("LogIn erfolgreich.");
                     proceed = true;
                 } else {
