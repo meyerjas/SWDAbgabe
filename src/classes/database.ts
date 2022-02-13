@@ -129,11 +129,8 @@ export class Database {
 
     public async getAllRides(): Promise<Ride[]> {
         let allRides: Ride[] = <Ride[]><unknown[]>await this.dbRides.find().toArray();
-        if (allRides) {
-            return allRides;
-        } else {
-            return null;
-        }
+        return allRides;
+        
     }
 
     //everything considering cars
@@ -156,12 +153,9 @@ export class Database {
         }
     }
 
-    public async getAllCars(): Promise<Car[] | null> {
+    public async getAllCars(): Promise<Car[]> {
         let allCars: Car[] = <Car[]><unknown[]>await this.dbCars.find().toArray();
-        if (allCars)
             return allCars;
-        else
-            return null;
     }
 
     public async getAllConventionalCars(): Promise<Car[] | null> {

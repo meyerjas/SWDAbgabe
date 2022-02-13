@@ -64,11 +64,9 @@ export class Methods {
     }
 
     public async createRide(): Promise<void> {
-        //choose car
+        
         let chosenCar: Car = await customerMethod.chooseCar();
-        //prompts to see when customer needs the car
         let dateTime: Date = await customerMethod.dateTimeNeed();
-        //prompts to see how long the customer needs the car
         let duration: number = await customerMethod.durationNeed();
 
         let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
@@ -96,9 +94,7 @@ export class Methods {
 
         if (prompt.answer == 0) {
             let chosenCar: Car = await customerMethod.chooseElectricCar();
-            //prompts to see when customer needs the car
             let dateTime: Date = await customerMethod.dateTimeNeed();
-            //prompts to see how long the customer needs the car
             let duration: number = await customerMethod.durationNeed();
 
             let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);
@@ -112,9 +108,7 @@ export class Methods {
 
         if (prompt.answer == 1) {
             let chosenCar: Car = await customerMethod.chooseConventionalCar();
-            //prompts to see when customer needs the car
             let dateTime: Date = await customerMethod.dateTimeNeed();
-            //prompts to see how long the customer needs the car
             let duration: number = await customerMethod.durationNeed();
 
             let success: boolean = await customerMethod.getRidesAndBook(chosenCar._id, dateTime, duration);

@@ -19,10 +19,10 @@ export class LogInManager {
 
 
     public async logIn(admin: boolean): Promise<string> {
-        
+
         let proceed: boolean = false;
-        let userName: string;
-        
+        let userName: string = "";
+
         while (!proceed) {
 
             let response = await prompts({
@@ -39,8 +39,9 @@ export class LogInManager {
             });
             let password: string = response.value;
 
-            let customer: Customer = await database.login(userName, password);
-            this.activeCustomer = customer;
+            let customer: Customer | null = await database.login(userName, password);
+            if (customer)
+                this.activeCustomer = customer;
 
             if (admin == false) {
                 if (customer) {
@@ -62,7 +63,7 @@ export class LogInManager {
         } return userName;
     }
 
-    public async register(): Promise<string> {
+    public async register(): Promise<string | null> {
 
         let proceed: boolean = false;
 
@@ -82,7 +83,7 @@ export class LogInManager {
             let password: string = response.value;
 
             if (this.checkUsername(userName)) {
-                let customer: Customer = await database.register(userName, password);
+                let customer: Customer | null = await database.register(userName, password);
                 if (customer != null) {
                     console.log("Registrierung erfolgreich! Die Buchung erfolgt jetzt.");
                     proceed = true;
@@ -96,6 +97,7 @@ export class LogInManager {
                 console.log("Der Username muss zwischen 5-20 Zeichen lang sein und darf keine Sonderzeichen enthalten. Bitte versuche es erneut.")
             }
         }
+        return null;
     }
 
 
