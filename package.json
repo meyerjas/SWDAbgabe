@@ -4,7 +4,7 @@
     "description": "Dies ist ein Konsolenprogramm, das im Rahmen des Kurses \"Softwaredesign\" an der Hochschule Furtwangen als Abgabe erstellt wurde.\r Nach Starten des Programms navigiert man mit den Pfeiltasten durch die Antwortmöglichkeiten, Bestätigen von Antworten mit Enter.",
     "main": "main.js",
     "scripts": {
-        "start": "node ./dist/main.js",
+        "start": "node ./dist/classes/main.js",
         "watch": "ts-node-dev --respawn --transpile-only ./src/classes/main.ts",
         "build": "tsc",
         "test": "jest"
