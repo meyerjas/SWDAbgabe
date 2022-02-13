@@ -8,7 +8,7 @@ export class AdminMethods {
 
     public async addCarInput(): Promise<void> {
 
-        let fuelType: string;
+        let fuelType: string = "";
 
         let response = await prompts({
             type: "text",

@@ -82,9 +82,6 @@ export class LogInManager {
             let password: string = response.value;
 
             if (this.checkUsername(userName)) {
-
-
-
                 let customer: Customer = await database.register(userName, password);
                 if (customer != null) {
                     console.log("Registrierung erfolgreich! Die Buchung erfolgt jetzt.");
